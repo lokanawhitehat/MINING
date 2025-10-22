@@ -1,0 +1,104 @@
+---
+title: "LOKANA SHANKARA"
+output: html_document
+date: "2025-03-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+library(MASS)
+data("Boston")
+
+# Fit cubic polynomial regression
+fit_poly3 <- lm(nox ~ poly(dis, 3), data = Boston)
+summary(fit_poly3)
+
+# Plot data and polynomial fit
+plot(Boston$dis, Boston$nox, main = "Cubic Polynomial Fit", xlab = "dis", ylab = "nox", pch = 20, col = "gray")
+dis_vals <- seq(min(Boston$dis), max(Boston$dis), length.out = 100)
+preds <- predict(fit_poly3, newdata = data.frame(dis = dis_vals))
+lines(dis_vals, preds, col = "blue", lwd = 2)
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r}
+rss <- numeric(10)
+plot(Boston$dis, Boston$nox, col = "lightgray", pch = 20, xlab = "dis", ylab = "nox")
+
+for (d in 1:10) {
+  fit <- lm(nox ~ poly(dis, d), data = Boston)
+  rss[d] <- sum(residuals(fit)^2)
+  
+  preds <- predict(fit, newdata = data.frame(dis = dis_vals))
+  lines(dis_vals, preds, col = rainbow(10)[d])
+}
+
+# Print RSS
+rss
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r}
+library(boot)
+cv_error <- sapply(1:10, function(d) {
+  glm_fit <- glm(nox ~ poly(dis, d), data = Boston)
+  cv.glm(Boston, glm_fit, K = 10)$delta[1]
+})
+
+# Plot CV error vs degree
+plot(1:10, cv_error, type = "b", xlab = "Degree", ylab = "CV Error")
+```
+
+```{r}
+library(splines)
+
+fit_spline4 <- lm(nox ~ bs(dis, df = 4), data = Boston)
+summary(fit_spline4)
+
+# Plot spline fit
+plot(Boston$dis, Boston$nox, pch = 20, col = "gray", xlab = "dis", ylab = "nox")
+lines(dis_vals, predict(fit_spline4, newdata = data.frame(dis = dis_vals)), col = "red", lwd = 2)
+```
+
+```{r}
+rss_spline <- numeric(10)
+
+for (df in 3:10) {
+  fit <- lm(nox ~ bs(dis, df = df), data = Boston)
+  rss_spline[df] <- sum(residuals(fit)^2)
+}
+
+# Report RSS
+rss_spline[3:10]
+```
+
+
+```{r}
+cv_spline <- sapply(3:10, function(df) {
+  fit <- glm(nox ~ bs(dis, df = df), data = Boston)
+  cv.glm(Boston, fit, K = 10)$delta[1]
+})
+
+# Plot
+plot(3:10, cv_spline, type = "b", xlab = "Degrees of Freedom", ylab = "CV Error")
+```
+
+
+
+
+
